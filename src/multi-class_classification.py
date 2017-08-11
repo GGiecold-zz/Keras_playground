@@ -1,4 +1,4 @@
-#!/usr/bin/dev/python
+#!/usr/bin/env python
 
 
 from keras import layers, models
