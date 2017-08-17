@@ -30,7 +30,11 @@ def class_activation_heatmap(file_path, architecture='vgg16',
        arXiv:1610.02391 [cs.CV]. The gist of it consists in weighting, 
        given an input image, a spatial map of different channel activations 
        by the gradient of a class with respect to those channels. 
-       The said channels are assumed to be part of a specific feature map.
+       The said channels are assumed to be part of a specific feature map;
+       in the present implementation, this feature map is enforced to be the last
+       layer of the convolutional base of either of an Inception, ResNet,
+       VGG16, VGG19 or Xception architecture (as specified by the eponymous
+       parameter).
     """
 
     # The following is required because we are making use
