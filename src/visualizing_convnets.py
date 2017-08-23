@@ -19,7 +19,8 @@ from sklearn.preprocessing import StandardScaler
 
 __all__ = ['class_activation_preprocess', 'class_activation_heatmap',
            'display_filters', 'display_intermediate_activations',
-           'maximally_responsive_pattern', 'to_valid_img']
+           'maximally_responsive_pattern', 'to_valid_img', 'trial_1',
+           'trial_2', 'trial_3']
 
 
 def class_activation_heatmap(file_path, architecture='vgg16',
