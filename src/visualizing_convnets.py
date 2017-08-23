@@ -274,21 +274,9 @@ def display_intermediate_activations(model, file_path, num_layers=8,
 
     plt.show()
 
-    
-def main():
 
-    try:
-        odir = path.join(path.dirname(getcwd()), 'output',
-            'visualizing_convnets')
-        makedirs(odir)
-        for name in ('class_activation_maps', 'filter_patterns',
-                     'intermediate_activations'):
-            subdidr = path.join(odir, name)
-            makedirs(subdir)
-    except OSError as err:
-        if err.errno != errno.EEXIST:
-            raise
-        
+def trial_1(odir):
+           
     print("Displaying the activations of every channel in every "
           "intermediate layer activation on a randomly-selected "
           "cat picture from the catsVsDogs test set:\n\n\n")
@@ -306,7 +294,10 @@ def main():
         model, file_path,
         odir=path.join(odir, 'intermediate_activations')
     )
-
+           
+           
+def trial_2(odir):
+           
     print("\n\n\nDisplaying the response patterns of the first 64 filters "
           "in the first layer of each convolution block of the VGG16 "
           "deep neural network architecture pre-trained on the "
@@ -321,7 +312,10 @@ def main():
             model, layer_name,
             odir=path.join(odir, 'filter_patterns')
         )
-
+           
+           
+def trial_3(odir):
+           
     print("\n\n\nDisplaying a class activation map, i.e. a heatmap of 'class "
           "activation' over an input image that for a particular class "
           "indicates how important each location in that image is to that "
@@ -333,6 +327,25 @@ def main():
     file_path = path.join(path.dirname(getcwd()), 'data', 'raven.jpg')
     class_activation_heatmap(file_path, architecture='vgg16',
         odir=path.join(odir, 'class_activation_maps'))
+   
+
+def main():
+
+    try:
+        odir = path.join(path.dirname(getcwd()), 'output',
+            'visualizing_convnets')
+        makedirs(odir)
+        for name in ('class_activation_maps', 'filter_patterns',
+                     'intermediate_activations'):
+            subdidr = path.join(odir, name)
+            makedirs(subdir)
+    except OSError as err:
+        if err.errno != errno.EEXIST:
+            raise
+        
+    trial_1(odir)
+    trial_2(odir)
+    trial_3(odir)
 
     
 if __name__ == '__main__':
