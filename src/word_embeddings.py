@@ -13,6 +13,7 @@ from __future__ import print_function
 
 from builtins import zip
 from collections import MutableSequence, Sequence
+import fnmatch
 import functools
 import inspect
 from multiprocessing import Pool
@@ -37,7 +38,6 @@ except ImportError:
     
 import zipfile
 
-import fnmatch
 from keras import layers, models
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
