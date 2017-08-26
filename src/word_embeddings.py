@@ -125,7 +125,7 @@ def get_imdb_data(odir, train_flag=True):
     labels, texts = list(), list()
     for category in ('neg', 'pos'):
         subdir = path.join(odir, 'train' if train_flag else 'test', category)
-        for fname in fnmatch.filter(listdir(subdir), '.txt'):
+        for fname in fnmatch.filter(listdir(subdir), '*.txt'):
             labels.append(0 if category == 'neg' else 1)
             
             with open(path.join(subdir, fname), 'r') as fh:
@@ -177,11 +177,7 @@ def tokenize_data(tokenizer, odir, num_words, num_training_samples=200,
         num_training_samples:num_training_samples + num_validation_samples
     ]
     
-    labels, data = helper(False)
-    data = tokenizer.texts_to_sequences(data)
-    
-    x_test = pad_sequences(data, maxlen=max_words_per_text)
-    y_test = labels
+    y_test, x_test = helper(False)
 
     return (x_train, y_train), (x_val, y_val), (x_test, y_test)
 
@@ -226,7 +222,7 @@ def build_model(pretrained_embedding=True, odir=None, tokenizer=None,
         for k, v in tokenizer.word_index.iteritems():
             word_embedding = embedding_dict.get(k)
             if v < num_words and word_embedding is not None:
-                embedding_matrix[v] = embedding_vector
+                embedding_matrix[v] = word_embedding
         
         model.layers[0].set_weights([embedding_matrix])
         model.layers[0].trainable = False
@@ -274,11 +270,13 @@ def main():
                             tokenizer)
         
         history = model.fit(x_train, y_train, epochs=10, batch_size=32,
-                            validation_data=(x_val, y_val))
-        test_loss = model.evaluate(x_test, y_test)
-        print("\nTest loss for the model "
-              "{} pretrained GloVe word embeddings: {}\n".format(
-                  'with' if pretrained else 'without', test_loss))
+                            validation_data=(x_val, y_val), verbose=0)
+        scores = model.evaluate(x_test, y_test, verbose=0)
+        
+        print("\nTest results for the model "
+              "{} pretrained GloVe word embeddings: ".format(
+              'with' if pretrained else 'without'))
+        print("loss={scores[0]}, accuracy={scores[1]}\n".format(**locals()))
         
         model.save_weights('{}glove_model.hy'.format(
             'pretrained_' if pretrained else ''))
