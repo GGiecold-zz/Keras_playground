@@ -50,6 +50,7 @@ __all__ = ['build_model', 'download_extract',
            'get_imdb_data', 'tokenize_data',
            'track_train']
 
+
 def track_train(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -134,7 +135,7 @@ def get_imdb_data(odir, train_flag=True):
     return labels, texts
 
 
-def tokenize_data(tokenizer, odir, num_words, num_training_samples=200,
+def tokenize_data(tokenizer, odir, num_words, num_training_samples=20000,
     num_validation_samples=10000, max_words_per_text=100):
     
     @track_train
