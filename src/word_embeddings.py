@@ -278,6 +278,8 @@ def main():
               "{} pretrained GloVe word embeddings: ".format(
               'with' if pretrained else 'without'))
         print("loss={scores[0]}, accuracy={scores[1]}\n".format(**locals()))
+        # The model with pretrained embedding vectors will display a lower
+        # test accuracy, due to having overfitted the training samples.
         
         model.save_weights('{}glove_model.hy'.format(
             'pretrained_' if pretrained else ''))
