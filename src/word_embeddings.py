@@ -41,7 +41,6 @@ import zipfile
 from keras import layers, models
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
-import matplotlib.pyplot as plt
 import numpy as np
 import wget
 
