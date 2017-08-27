@@ -45,6 +45,13 @@ import numpy as np
 import wget
 
 
+__author__ = 'Gregory Giecold'
+__copyright__ = 'Copyright 2017-2022 Gregory Giecold and contributors'
+__credit__ = 'Gregory Giecold'
+__status__ = 'beta'
+__version__ = '0.1.0'
+
+
 __all__ = ['build_model', 'download_extract',
            'get_imdb_data', 'tokenize_data',
            'track_train']
