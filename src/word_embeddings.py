@@ -15,7 +15,7 @@ from builtins import zip
 from collections import MutableSequence, Sequence
 import fnmatch
 import functools
-import inspect
+from inspect import isgenerator
 from multiprocessing import Pool
 import os
 from os import getcwd, listdir, mkdir, path
@@ -155,7 +155,7 @@ def tokenize_data(tokenizer, odir, num_words, num_training_samples=20000,
             if isinstance(texts, (MutableSequence, Sequence)):
                 texts = list(texts)
             else:
-                assert inspect.isgenerator(texts)
+                assert isgenerator(texts)
         except Exception:
             raise
         
