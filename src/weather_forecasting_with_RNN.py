@@ -117,11 +117,10 @@ def plot_training_history(history, fname):
     plt.ylabel('Loss')
     plt.title('Training and validation loss')
 
-    plt.show()
-    plt.savefig(fname)
+    with open(fname, 'w') as fh:
+        plt.savefig(fname)
     
-    time.sleep(2)
-    plt.close()
+    plt.show()
     
 
 def main():
@@ -142,28 +141,28 @@ def main():
     target_feature = 'T (degC)'
     feature_idx = df.columns.tolist().index(target_feature)
     
-    training_days = 1000
+    train_days = 1000
     validation_days = 1000
 
     lookahead = 1 # unit: day
     lookback = 5 # unit: day
     batch_size = 128
     
-    df = dh.normalize(df, training_days)
+    df = dh.normalize(df, train_days)
 
-    train_gen = dh.data_generator(df, end_idx=training_days,
-                                  lookahead=lookahead, lookback=lookback,
-                                  batch_size=batch_size)
-    validation_gen = dh.data_generator(df, begin_idx=training_days,
-                                       end_idx=training_days + validation_days,
+    train_gen = dh.data_generator(df, end_idx=train_days, lookahead=lookahead,
+                                  lookback=lookback, batch_size=batch_size)
+    validation_gen = dh.data_generator(df, begin_idx=train_days,
+                                       end_idx=train_days + validation_days,
                                        lookahead=lookahead, lookback=lookback,
                                        batch_size=batch_size)
-    test_gen = dh.data_generator(df, begin_idx=training_days + validation_days,
+    test_gen = dh.data_generator(df, begin_idx=train_days + validation_days,
                                  lookahead=lookahead, lookback=lookback,
                                  batch_size=batch_size, timeout=True)
 
-    validation_steps = validation_days // batch_size
-    test_steps = (df.index.levshape[0] - training_days - validation_days) \
+    train_steps = 10 * train_days // batch_size
+    validation_steps = 10 * validation_days // batch_size
+    test_steps = 10 * (df.index.levshape[0] - train_days - validation_days) \
                  // batch_size
 
     mae_score = simple_baseline(validation_gen, validation_steps, feature_idx)
@@ -173,11 +172,9 @@ def main():
 
     samples, targets = next(train_gen)
     model = build_dense_model(input_shape=samples[0,:,:].shape)
-    history = model.fit_generator(
-        train_gen, steps_per_epoch=5*training_days // batch_size,
-        epochs=20, validation_data=validation_gen,
-        validation_steps=5*validation_steps
-    )
+    history = model.fit_generator(train_gen, steps_per_epoch=train_steps,
+                                  epochs=20, validation_data=validation_gen,
+                                  validation_steps=validation_steps)
     fname = path.join(odir, 'densely_connected_net_losses.png')
     plot_training_history(history, fname)
 
