@@ -11,9 +11,11 @@ r"""Gathering and processing the data required for predicting
     This is accomplished by massaging the data into a multi-indexed
     dataframe (in the case at hand a two-level index accessed by
     specifying a day and a timestamp).
-    Indeed, it turns out that there are 287 timestamps on
-    '2010-01-07', instead of the expected 144 (on most days measurements
-    are recorded every 10 minutes).
+    
+    Indeed, it turns out that for the so-called Jena dataset there are 
+    287 timestamps on '2010-01-07', instead of the expected 144 
+    (on most days measurements are recorded every 10 minutes).
+    
     As another illustration, '2016-10-25' comes with only 64 timestamps; 
     for some unaccounted reason, measurements range only from 12:00:00 A.M.
     to 10:30:00 A.M. on that day.
