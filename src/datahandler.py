@@ -447,7 +447,7 @@ def fill_time(df, sampling_rate='1h'):
         delta = next_day - current_day
         if delta.days > 1:
             gap_pairs.append((current_day, next_day))
-    gap_pairs = gap_pairs[::-1]
+    gap_pairs.reverse()
 
     # Would need to expand this if more options were introduced
     # for the choice of resampling schedule.
