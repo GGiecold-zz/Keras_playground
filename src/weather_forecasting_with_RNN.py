@@ -118,10 +118,10 @@ def plot_training_history(history, fname):
     plt.title('Training and validation loss')
 
     plt.show()
+    plt.savefig(fname)
+    
     time.sleep(2)
     plt.close()
-    
-    plt.savefig(fname)
     
 
 def main():
@@ -178,7 +178,7 @@ def main():
         epochs=20, validation_data=validation_gen,
         validation_steps=5*validation_steps
     )
-    fname = path.join(odir, 'densely_connected_net_losses.jpg')
+    fname = path.join(odir, 'densely_connected_net_losses.png')
     plot_training_history(history, fname)
 
     
