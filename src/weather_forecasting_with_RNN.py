@@ -122,7 +122,7 @@ def build_RNN_baseline(input_shape):
     model.add(layers.GRU(32, input_shape=(None, input_shape[-1])))
     model.add(layers.Dense(1))
 
-    model.compile(optimizer=RMSprop(lr='0.001'), loss='mae')
+    model.compile(optimizer=RMSprop(lr=0.001), loss='mae')
 
     return model
 
@@ -155,7 +155,7 @@ def build_RNN(input_shape, dropout=0.5, recurrent_dropout=0.5,
                 recurrent_dropout=recurrent_dropout))
         model.add(layers.Dense(1))
 
-    model.compile(optimizer=RMSprop(lr='0.001'), loss='mae')
+    model.compile(optimizer=RMSprop(lr=0.001), loss='mae')
     
     return model
 
