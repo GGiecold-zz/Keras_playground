@@ -33,7 +33,12 @@ from __future__ import print_function
 
 from builtins import range, zip
 import errno
-from inspect import isgenerator
+from inspect import getargspec, isgenerator
+
+try:
+    from itertools import zip_longest
+except ImportError:
+    from itertools import izip_longest as zip_longest
 
 try:
     from multiprocessing import cpu_count
@@ -59,7 +64,7 @@ __status__ = 'beta'
 __version__ = '0.1.0'
 
 
-__all__ = ['build_dense_baseline', 'build_RNN_baseline', 
+__all__ = ['build_dense_baseline', 'build_RNN', 'build_RNN_baseline', 
            'plot_training_history', 'simple_baseline']
 
 
@@ -107,9 +112,14 @@ def build_dense_baseline(input_shape):
 
 def build_RNN_baseline(input_shape):
     
+    try:
+        assert isinstance(input_shape, tuple)
+    except AssertionError:
+        raise
+    
     model = models.Sequential()
 
-    model.add(layers.GRU(32, input_shape=(None, input_shape)))
+    model.add(layers.GRU(32, input_shape=None + input_shape))
     model.add(layers.Dense(1))
 
     model.compile(optimizer=RMSprop(lr='0.001'), loss='mae')
@@ -117,6 +127,15 @@ def build_RNN_baseline(input_shape):
     return model
 
 
+def build_RNN(input_shape):
+    
+    try:
+        assert isinstance(input_shape, tuple)
+    except AssertionError:
+        raise
+        
+    
+    
 def plot_training_history(history, fname):
 
     loss = history.history['loss']
@@ -187,11 +206,31 @@ def main():
     samples, _ = next(train_gen)
     input_shape = samples[0, :, :].shape
     
-    for experiment in (build_dense_baseline, build_RNN_baseline):
-        model = experiment(input_shape)
+    experiments = (build_dense_baseline, build_RNN_baseline, build_RNN)
+    hyperparameters = (None, None, (0.2, 0.2, False), (0.1, 0.5, True))
+    
+    for experiment, hyperparams in zip_longest(experiments, hyperparameters,
+        fillvalue=build_RNN):
+        if hyperparams is None:
+            model = experiment(input_shape)
+        else:
+            dropout, recurrent_dropout, stacked = hyperparams
+            model = experiment(input_shape, dropout,
+                recurrent_dropout, stacked)
+        
+        epochs = 20
+        if experiment.__name__ == 'build_RNN':
+            spec = getargspec(experiment)
+            defaults = dict(zip(spec.args[::-1], (spec.defaults or ())[::-1]))
+            defaults.update(spec.keywords or {})
+
+            if defaults['dropout'] > 0:
+                epochs *= 2
+            
         history = model.fit_generator(train_gen, steps_per_epoch=train_steps,
-                                      epochs=20, validation_data=validation_gen,
+                                      epochs=epochs, validation_data=validation_gen,
                                       validation_steps=validation_steps)
+        
         fname = path.join(odir, '_'.join([experiment.__name__.lstrip('build_'), 
                                           'losses.png']))
         plot_training_history(history, fname)
