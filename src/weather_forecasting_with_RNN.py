@@ -119,7 +119,7 @@ def build_RNN_baseline(input_shape):
     
     model = models.Sequential()
 
-    model.add(layers.GRU(32, input_shape=None + input_shape))
+    model.add(layers.GRU(32, input_shape=(None,) + input_shape))
     model.add(layers.Dense(1))
 
     model.compile(optimizer=RMSprop(lr='0.001'), loss='mae')
@@ -143,12 +143,12 @@ def build_RNN(input_shape, dropout=0.5, recurrent_dropout=0.5,
 
     if bidirectional:
         model.add(layers.Bidirectional(
-            layers.GRU(32, input_shape=None + input_shape)))
+            layers.GRU(32, input_shape=(None,) + input_shape)))
         model.add(layers.Dense(1))
     else:
         model.add(layers.GRU(32, dropout=dropout,
             recurrent_dropout=recurrent_dropout,
-            input_shape=None + input_shape,
+            input_shape=(None,) + input_shape,
             return_sequences=True if stacked else False))
         if stacked:
             model.add(layers.GRU(64, activation='relu', dropout=dropout,
