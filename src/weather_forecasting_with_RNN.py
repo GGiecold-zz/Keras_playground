@@ -45,6 +45,7 @@ import time
 
 from joblib import delayed, Parallel
 from keras import layers, models
+from keras.optimizers import RMSprop
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -58,7 +59,8 @@ __status__ = 'beta'
 __version__ = '0.1.0'
 
 
-__all__ = ['build_dense_model', 'plot_training_history', 'simple_baseline']
+__all__ = ['build_dense_baseline', 'build_RNN_baseline', 
+           'plot_training_history', 'simple_baseline']
 
 
 def simple_baseline(generator, steps, feature_idx):
@@ -84,7 +86,7 @@ def simple_baseline_helper(samples, targets, feature_idx):
     return mae
                               
 
-def build_dense_model(input_shape):
+def build_dense_baseline(input_shape):
 
     try:
         assert isinstance(input_shape, tuple)
@@ -99,6 +101,18 @@ def build_dense_model(input_shape):
     model.summary()
         
     model.compile(optimizer='rmsprop', loss='mae')
+
+    return model
+
+
+def build_RNN_baseline(input_shape):
+    
+    model = models.Sequential()
+
+    model.add(layers.GRU(32, input_shape=(None, input_shape)))
+    model.add(layers.Dense(1))
+
+    model.compile(optimizer=RMSprop(lr='0.001'), loss='mae')
 
     return model
 
@@ -170,13 +184,17 @@ def main():
           "in predicting the last temperature reading of "
           "each training sample: {mae_score}\n\n".format(**locals()))
 
-    samples, targets = next(train_gen)
-    model = build_dense_model(input_shape=samples[0,:,:].shape)
-    history = model.fit_generator(train_gen, steps_per_epoch=train_steps,
-                                  epochs=20, validation_data=validation_gen,
-                                  validation_steps=validation_steps)
-    fname = path.join(odir, 'densely_connected_net_losses.png')
-    plot_training_history(history, fname)
+    samples, _ = next(train_gen)
+    input_shape = samples[0, :, :].shape
+    
+    for experiment in (build_dense_baseline, build_RNN_baseline):
+        model = experiment(input_shape)
+        history = model.fit_generator(train_gen, steps_per_epoch=train_steps,
+                                      epochs=20, validation_data=validation_gen,
+                                      validation_steps=validation_steps)
+        fname = path.join(odir, '_'.join([experiment.__name__.lstrip('build_'), 
+                                          'losses.png']))
+        plot_training_history(history, fname)
 
     
 if __name__ == '__main__':
