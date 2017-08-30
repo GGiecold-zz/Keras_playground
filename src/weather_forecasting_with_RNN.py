@@ -127,15 +127,39 @@ def build_RNN_baseline(input_shape):
     return model
 
 
-def build_RNN(input_shape):
-    
+def build_RNN(input_shape, dropout=0.5, recurrent_dropout=0.5,
+              stacked=False, bidirectional=False):
+
     try:
         assert isinstance(input_shape, tuple)
+        assert isinstance(dropout, float) and 0 <= dropout < 1
+        assert isinstance(recurrent_dropout, float) and 0 <= recurrent_dropout < 1
+        assert isinstance(stacked, (bool, int))
+        assert isinstance(bidirectional, (bool, int))
     except AssertionError:
         raise
-        
+
+    model = models.Sequential()
+
+    if bidirectional:
+        model.add(layers.Bidirectional(
+            layers.GRU(32, input_shape=None + input_shape)))
+        model.add(layers.Dense(1))
+    else:
+        model.add(layers.GRU(32, dropout=dropout,
+            recurrent_dropout=recurrent_dropout,
+            input_shape=None + input_shape,
+            return_sequences=True if stacked else False))
+        if stacked:
+            model.add(layers.GRU(64, activation='relu', dropout=dropout,
+                recurrent_dropout=recurrent_dropout))
+        model.add(layers.Dense(1))
+
+    model.compile(optimizer=RMSprop(lr='0.001'), loss='mae')
     
-    
+    return model
+
+
 def plot_training_history(history, fname):
 
     loss = history.history['loss']
@@ -207,10 +231,10 @@ def main():
     input_shape = samples[0, :, :].shape
     
     experiments = (build_dense_baseline, build_RNN_baseline, build_RNN)
-    hyperparameters = (None, None, (0.2, 0.2, False), (0.1, 0.5, True))
+    hyperparameters = (None, None, (0.2, 0.2, False, False),
+        (0.1, 0.5, True, False), (0, 0, False, True))
     
-    for experiment, hyperparams in zip_longest(experiments, hyperparameters,
-        fillvalue=build_RNN):
+    for experiment, hyperparams in zip_longest(experiments, hyperparameters, fillvalue=build_RNN):
         if hyperparams is None:
             model = experiment(input_shape)
         else:
@@ -220,19 +244,24 @@ def main():
         
         epochs = 20
         if experiment.__name__ == 'build_RNN':
-            spec = getargspec(experiment)
-            defaults = dict(zip(spec.args[::-1], (spec.defaults or ())[::-1]))
-            defaults.update(spec.keywords or {})
-
-            if defaults['dropout'] > 0:
+            if hyperparams is not None and hyperparams[0] > 0:
                 epochs *= 2
+            else:
+                spec = getargspec(experiment)
+                defaults = dict(zip(spec.args[::-1], (spec.defaults or ())[::-1]))
+                defaults.update(spec.keywords or {})
+
+                if defaults['dropout'] > 0:
+                    epochs *= 2
             
         history = model.fit_generator(train_gen, steps_per_epoch=train_steps,
                                       epochs=epochs, validation_data=validation_gen,
                                       validation_steps=validation_steps)
         
-        fname = path.join(odir, '_'.join([experiment.__name__.lstrip('build_'), 
-                                          'losses.png']))
+        fname = path.join(odir, '_'.join([
+            experiment.__name__.lstrip('build_'), '' if hyperparams is None \
+            else '_'.join(map(lambda x: str(x), hyperparams)),
+            'losses.png']))
         plot_training_history(history, fname)
 
     
