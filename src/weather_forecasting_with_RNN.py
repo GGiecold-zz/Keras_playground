@@ -132,8 +132,8 @@ def build_RNN(input_shape, dropout=0.5, recurrent_dropout=0.5,
 
     try:
         assert isinstance(input_shape, tuple)
-        assert isinstance(dropout, float) and 0 <= dropout < 1
-        assert isinstance(recurrent_dropout, float) and 0 <= recurrent_dropout < 1
+        assert isinstance(dropout, (int, float)) and 0 <= dropout < 1
+        assert isinstance(recurrent_dropout, (int, float)) and 0 <= recurrent_dropout < 1
         assert isinstance(stacked, (bool, int))
         assert isinstance(bidirectional, (bool, int))
     except AssertionError:
