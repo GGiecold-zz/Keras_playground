@@ -64,8 +64,9 @@ __status__ = 'beta'
 __version__ = '0.1.0'
 
 
-__all__ = ['build_dense_baseline', 'build_RNN', 'build_RNN_baseline', 
-           'plot_training_history', 'simple_baseline']
+__all__ = ['build_CNN_RNN_hybrid', 'build_dense_baseline', 'build_RNN', 
+           'build_RNN_baseline', 'plot_training_history', 
+           'simple_baseline']
 
 
 def simple_baseline(generator, steps, feature_idx):
@@ -160,6 +161,33 @@ def build_RNN(input_shape, dropout=0.5, recurrent_dropout=0.5,
     return model
 
 
+def build_CNN_RNN_hybrid(input_shape, kernel_size=5, pool_size=3,
+                         dropout=0.5, recurrent_dropout=0.5):
+    
+    try:
+        assert isinstance(input_shape, tuple)
+        assert isinstance(kernel_size, int) and kernel_size > 0
+        assert isinstance(pool_size, int) and pool_size > 0
+        assert isinstance(dropout, (int, float)) and 0 <= dropout < 1
+        assert isinstance(recurrent_dropout, (int, float)) and 0 <= recurrent_dropout < 1
+    except AssertionError:
+        raise
+
+    model = models.Sequential()
+
+    model.add(layers.Conv1D(32, kernel_size, activation='relu',
+        input_shape=(None, input_shape[-1])))
+    model.add(layers.MaxPooling1D(pool_size))
+    model.add(layers.Conv1D(32, kernel_size, activation='relu'))
+    model.add(layers.GRU(32, dropout=dropout,
+        recurrent_dropout=recurrent_dropout))
+    model.add(layers.Dense(1))
+
+    model.compile(optimizer=RMSprop(lr=1e-3), loss='mae')
+
+    return model
+
+
 def plot_training_history(history, fname):
 
     loss = history.history['loss']
@@ -230,13 +258,18 @@ def main():
     samples, _ = next(train_gen)
     input_shape = samples[0, :, :].shape
     
-    experiments = (build_dense_baseline, build_RNN_baseline, build_RNN)
-    hyperparameters = (None, None, (0.2, 0.2, False, False),
+    experiments = (build_dense_baseline, build_RNN_baseline, 
+                   build_CNN_RNN_hybrid, build_RNN)
+    hyperparameters = (None, None, (0.1, 0.5, 5, 3), (0.2, 0.2, False, False),
         (0.1, 0.5, True, False), (0, 0, False, True))
     
     for experiment, hyperparams in zip_longest(experiments, hyperparameters, fillvalue=build_RNN):
         if hyperparams is None:
             model = experiment(input_shape)
+        elif experiment.__name__ == 'build_CNN_RNN_hybrid':
+            dropout, recurrent_dropout, kernel_size, pool_size = hyperparams
+            model = experiment(input_shape, kernel_size, pool_size,
+                dropout, recurrent_dropout)
         else:
             dropout, recurrent_dropout, stacked = hyperparams
             model = experiment(input_shape, dropout,
